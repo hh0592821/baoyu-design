@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Synthetic bundled SVG capture regression</title>
+<style id="inactive-import">@import url('/inactive.css') print;</style>
+<style>
+  @import url('/media-red.css') (min-width: 1400px);
+  @import url('/media-blue.css') (max-width: 1399px);
+</style>
+<style media="(min-width: 1400px)">.sheet-media { fill: red; }</style>
+<style media="(max-width: 1399px)">.sheet-media { fill: blue; }</style>
+<style>
+  html, body { margin: 0; background: white; color: rgb(22, 116, 200); }
+  #fixture { display: flex; width: 1344px; height: 48px; background: white; }
+  .icon { width: 48px; height: 48px; display: block; flex: none; }
+  .outline { fill: none; stroke: currentColor; stroke-width: 2; }
+  .css-current { fill: currentColor; }
+  .fixed-blue { fill: rgb(22, 116, 200); }
+  .red { color: rgb(200, 20, 50); }
+  @media (min-width: 1px) {
+    .media-outline { fill: none; stroke: currentColor; stroke-width: 2; }
+    .var-local { --paint: rgb(200, 20, 50); fill: var(--paint); }
+  }
+  .var-chain { --alias: var(--instance, var(--missing, rgb(200, 20, 50))); --paint: var(--alias); fill: var(--paint); }
+  .var-group { --paint: rgb(200, 20, 50); }
+  .var-path { fill: var(--paint); }
+  .var-priority { --paint: black; fill: var(--paint); }
+  .var-priority { --paint: rgb(200, 20, 50) !important; }
+  .icon:has(> .struct-defs > symbol:first-child) use { fill: rgb(200, 20, 50) !important; }
+  .icon:has(> .struct-defs > symbol:nth-child(2)) use { fill: rgb(200, 20, 50) !important; }
+  .icon:has(> .struct-defs > style:first-child) use { fill: blue !important; }
+  .icon:has(> symbol.struct-first > path:first-child) use { fill: rgb(200, 20, 50) !important; }
+  .icon:has(> symbol.struct-nth > path:nth-child(2)) use { fill: rgb(200, 20, 50) !important; }
+  .icon:has(> symbol.struct-first > style:first-child) use,
+  .icon:has(> symbol.struct-nth > g:nth-child(2)) use { fill: blue !important; }
+  @layer low, high;
+  @layer high { .layer-order { fill: blue !important; } }
+  @layer low { .layer-order { fill: red !important; } }
+  @layer early { .irrelevant { opacity: 0; } }
+  @layer later { .layer-empty { fill: blue !important; } }
+  @layer early { .layer-empty { fill: red !important; } }
+  @media (min-width: 1400px) { .media-rule { fill: red; } }
+  @media (max-width: 1399px) { .media-rule { fill: blue; } }
+</style>
+<div id="fixture">
+  <svg data-case="attribute-outline" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3H21V21H3Z"/></svg>
+  <svg data-case="inline-outline" class="icon" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2"><path d="M3 3H21V21H3Z"/></svg>
+  <svg data-case="group-outline" class="icon" viewBox="0 0 24 24"><g class="outline"><path d="M3 3H21V21H3Z"/></g></svg>
+  <svg data-case="symbol-attribute-outline" class="icon" viewBox="0 0 24 24"><defs fill="none" stroke="currentColor" stroke-width="2"><symbol id="attr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#attr" class="red"/></svg>
+  <svg data-case="symbol-css-outline" class="icon" viewBox="0 0 24 24"><defs fill="none" stroke="currentColor" stroke-width="2"><symbol class="outline" id="css" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#css" class="red"/></svg>
+  <svg data-case="css-currentcolor" class="icon" viewBox="0 0 24 24"><defs><symbol id="css-color" viewBox="0 0 24 24"><path class="css-current" d="M3 3H21V21H3Z"/></symbol></defs><use href="#css-color" class="red"/></svg>
+  <svg data-case="inline-currentcolor" class="icon" viewBox="0 0 24 24"><defs><symbol id="inline-color" viewBox="0 0 24 24"><path style="fill:currentColor" d="M3 3H21V21H3Z"/></symbol></defs><use href="#inline-color" class="red"/></svg>
+  <svg data-case="intentional-solid" class="icon" viewBox="0 0 24 24" fill="black"><path d="M3 3H21V21H3Z"/></svg>
+  <svg data-case="multicolor" class="icon" viewBox="0 0 24 24"><defs><symbol id="multicolor-symbol" viewBox="0 0 24 24"><path class="fixed-blue" d="M3 3H12V21H3Z"/><path fill="rgb(200,20,50)" d="M12 3H21V21H12Z"/></symbol></defs><use href="#multicolor-symbol" class="red"/></svg>
+  <svg data-case="gradient" class="icon" viewBox="0 0 24 24"><defs><linearGradient id="grad"><stop stop-color="rgb(22,116,200)"/><stop offset="1" stop-color="rgb(200,20,50)"/></linearGradient></defs><path fill="url(#grad)" d="M3 3H21V21H3Z"/></svg>
+  <svg data-case="clip" class="icon" viewBox="0 0 24 24"><defs><clipPath id="clip"><rect width="12" height="24"/></clipPath></defs><path fill="rgb(22,116,200)" clip-path="url(#clip)" d="M3 3H21V21H3Z"/></svg>
+  <svg data-case="media-xlink-outline" class="icon" viewBox="0 0 24 24"><defs class="outline"><symbol class="media-outline" id="media" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#media" class="red"/></svg>
+  <svg data-case="shared-currentcolor" class="icon" viewBox="0 0 24 24"><defs><symbol id="shared" viewBox="0 0 24 24"><path class="css-current" d="M3 3H21V21H3Z"/></symbol></defs><use href="#shared" width="12"/><use href="#shared" x="12" width="12" class="red"/></svg>
+  <svg data-case="variable-local" class="icon" viewBox="0 0 24 24"><defs><symbol id="var-local" class="var-local" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#var-local"/></svg>
+  <svg data-case="variable-chain" class="icon" viewBox="0 0 24 24"><defs><symbol id="var-chain" class="var-chain" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#var-chain"/></svg>
+  <svg data-case="variable-group" class="icon" viewBox="0 0 24 24"><defs><symbol id="var-group" viewBox="0 0 24 24"><g class="var-group"><path class="var-path" d="M3 3H21V21H3Z"/></g></symbol></defs><use href="#var-group"/></svg>
+  <svg data-case="variable-important" class="icon" viewBox="0 0 24 24"><defs><symbol id="var-priority" class="var-priority" style="--paint:blue" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#var-priority"/></svg>
+  <svg data-case="shared-variable" class="icon" viewBox="0 0 24 24"><defs><symbol id="var-use" class="var-chain" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#var-use" width="12" style="--instance:rgb(22,116,200)"/><use href="#var-use" x="12" width="12" style="--instance:rgb(200,20,50)"/></svg>
+  <svg data-case="struct-defs-first" class="icon" viewBox="0 0 24 24"><defs class="struct-defs"><symbol id="struct-first" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#struct-first"/></svg>
+  <svg data-case="struct-defs-nth" class="icon" viewBox="0 0 24 24"><defs class="struct-defs"><symbol viewBox="0 0 24 24"/><symbol id="struct-nth" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#struct-nth"/></svg>
+  <svg data-case="struct-symbol-first" class="icon" viewBox="0 0 24 24"><symbol id="path-first" class="struct-first" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol><use href="#path-first"/></svg>
+  <svg data-case="struct-symbol-nth" class="icon" viewBox="0 0 24 24"><symbol id="path-nth" class="struct-nth" viewBox="0 0 24 24"><g/><path d="M3 3H21V21H3Z"/></symbol><use href="#path-nth"/></svg>
+  <svg data-case="import-inactive" class="icon" viewBox="0 0 24 24"><defs><symbol id="import-inactive" class="import-inactive" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#import-inactive"/></svg>
+  <svg data-case="layer-order" class="icon" viewBox="0 0 24 24"><path class="layer-order" d="M3 3H21V21H3Z"/></svg>
+  <svg data-case="layer-empty" class="icon" viewBox="0 0 24 24"><path class="layer-empty" d="M3 3H21V21H3Z"/></svg>
+  <svg data-case="media-rule" class="icon" viewBox="0 0 24 24"><defs><symbol id="media-rule" class="media-rule" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#media-rule"/></svg>
+  <svg data-case="sheet-media" class="icon" viewBox="0 0 24 24"><defs><symbol id="sheet-media" class="sheet-media" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#sheet-media"/></svg>
+  <svg data-case="import-media" class="icon" viewBox="0 0 24 24"><defs><symbol id="import-media" class="import-media" viewBox="0 0 24 24"><path d="M3 3H21V21H3Z"/></symbol></defs><use href="#import-media"/></svg>
+</div>
+</html>
