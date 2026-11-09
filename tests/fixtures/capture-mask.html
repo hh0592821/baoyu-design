@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Synthetic CSS mask capture fixture</title>
+<style>
+html,body{margin:0;background:white}
+#fixture{display:flex;width:672px;height:48px;background:white;color:rgb(22,116,200)}
+.cell{flex:none;display:block;width:48px;height:48px}
+.mask{background:currentColor;mask-position:center;mask-size:contain;mask-repeat:no-repeat}
+.standard{mask-image:url('/mask.svg')}
+.webkit{-webkit-mask-image:url('/mask.svg')}
+.before::before,.after::after,.rule::before,.webkit-rule::after{content:"";display:block;width:48px;height:48px;background:currentColor}
+.before::before{mask:url('/mask.svg') center/contain no-repeat}
+.after::after{-webkit-mask:url('/mask.svg') center/contain no-repeat}
+.rule::before{content:attr(data-label);mask:url('/mask.svg') center/contain no-repeat}
+.webkit-rule::after{content:attr(data-label);-webkit-mask:url('/mask.svg') center/contain no-repeat}
+.multi{mask-image:url('/mask.svg'),url('/half.svg');mask-composite:intersect}
+.webkit-multi{-webkit-mask-image:url('/mask.svg'),url('/half.svg');mask-composite:intersect}
+.background{background-image:url('/paint.svg')}
+.solid{background:currentColor}
+</style>
+<body>
+<div id="fixture">
+  <i class="cell mask standard" data-case="element-standard"></i>
+  <i class="cell mask webkit" data-case="element-webkit"></i>
+  <i class="cell before" data-case="before-standard"></i>
+  <i class="cell after" data-case="after-webkit"></i>
+  <i class="cell rule" data-label="" data-case="rule-standard"></i>
+  <i class="cell webkit-rule" data-label="" data-case="rule-webkit"></i>
+  <i class="cell mask multi" data-case="multilayer-standard"></i>
+  <i class="cell mask webkit-multi" data-case="multilayer-webkit"></i>
+  <i class="cell mask" data-case="data-mask" style="mask-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22%3E%3Cpath fill=%22black%22 fill-rule=%22evenodd%22 d=%22M8 8h32v32H8z M16 16v16h16V16z%22/%3E%3C/svg%3E')"></i>
+  <img class="cell" data-case="img-control" alt="" src="/paint.svg">
+  <i class="cell background" data-case="background-control"></i>
+  <svg class="cell" data-case="local-svg-mask" viewBox="0 0 48 48"><defs><mask id="local-mask"><rect x="8" y="8" width="32" height="32" fill="white"/></mask></defs><rect width="48" height="48" fill="rgb(22,116,200)" mask="url(#local-mask)"/></svg>
+  <i class="cell solid" data-case="intentional-solid"></i>
+  <i class="cell" data-case="intentional-black" style="background:black"></i>
+</div>
+</body>
+</html>

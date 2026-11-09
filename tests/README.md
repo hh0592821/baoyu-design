@@ -50,3 +50,28 @@ They do not constitute a complete editor UI test, private-artwork reproduction,
 other-browser validation, or exhaustive stylesheet-feature coverage.
 In particular, nested CSS rules containing `currentColor` are a known pre-existing
 capture limitation; this patch does not claim to fix that separate case.
+
+## CSS mask PNG capture
+
+Run the synthetic CSS mask regression with the same browser prerequisites:
+
+```sh
+node --test tests/capture-mask.test.mjs
+```
+
+This test uses the checked-in capture runtime and anonymous loopback fixtures;
+it does not read or write actual design projects or exports. It covers external
+mask images on elements and pseudo-elements, retained image/background behavior,
+and failures that must produce warnings. For a negative control, extract the
+previous bundle and confirm the same test fails:
+
+```sh
+git show 5ca8ab421ce833dea74e80f601959e2fed63bde6:skills/claude-design/scripts/editor/assets/index-CLSAsUf1.js > /tmp/mask-capture-baseline.js
+BASELINE_ASSET=/tmp/mask-capture-baseline.js node --test tests/capture-mask.test.mjs
+```
+
+No original artwork is included in the fixture. Multi-layer coverage uses the
+standard `intersect` operator, not legacy `-webkit-mask-composite: source-in`.
+Complex CSS-escaped URLs are left unembedded with a warning. External SVG
+fragment rendering is not exhaustively validated; resource failures can still
+yield an incomplete PNG and produce a capture warning.
